@@ -1,0 +1,42 @@
+2023-03-10 22:20:18,536 :INFO : test_e2e :Opened the URL
+2023-03-10 22:20:18,537 :INFO : test_e2e :Initial Load Time: 416 ms
+2023-03-10 22:20:18,611 :INFO : test_e2e :Clicked on My Account
+2023-03-10 22:20:19,067 :INFO : test_e2e :Clicked on Login
+2023-03-10 22:20:20,062 :INFO : test_e2e :Entered Email & Password, Clicked on Submit
+2023-03-10 22:20:25,071 :INFO : test_e2e :Logged in Successfully
+2023-03-10 22:20:25,704 :INFO : test_e2e :Clicked on Phones & PDA's tab
+2023-03-10 22:20:25,705 :INFO : test_e2e :Products Load Time: 416 ms
+2023-03-10 22:20:27,029 :INFO : test_e2e :Clicked on iPhone from displayed results
+2023-03-10 22:20:27,080 :INFO : test_e2e :Clicked on Add To Cart
+2023-03-10 22:20:27,642 :INFO : test_e2e :Validated the success message after adding to cart
+2023-03-10 22:20:28,316 :INFO : test_e2e :Clicked on Checkout
+2023-03-10 22:20:28,358 :INFO : test_e2e :Validated the error message displayed
+2023-03-10 22:20:28,438 :INFO : test_e2e :Clicked on My Account for next loop
+2023-03-10 22:20:29,074 :INFO : test_e2e :Clicked on Logout
+2023-03-10 22:20:29,074 :INFO : test_e2e :Initial CPU usage: 32.8%
+2023-03-10 22:20:29,074 :INFO : test_e2e :Post-initial CPU usage: 32.8%
+2023-03-10 22:20:29,074 :INFO : test_e2e :Initial memory usage: 92.9%
+2023-03-10 22:20:29,074 :INFO : test_e2e :Post-initial memory usage: 92.9%
+2023-03-10 22:20:29,074 :INFO : test_e2e :Post-product CPU usage: 0.0%
+2023-03-10 22:20:29,074 :INFO : test_e2e :Post-product memory usage: 92.9%
+2023-03-10 22:20:29,538 :INFO : test_e2e :Opened the URL
+2023-03-10 22:20:29,538 :INFO : test_e2e :Initial Load Time: 552 ms
+2023-03-10 22:20:29,594 :INFO : test_e2e :Clicked on My Account
+2023-03-10 22:20:30,007 :INFO : test_e2e :Clicked on Login
+2023-03-10 22:20:30,970 :INFO : test_e2e :Entered Email & Password, Clicked on Submit
+2023-03-10 22:20:35,984 :INFO : test_e2e :Logged in Successfully
+2023-03-10 22:20:36,509 :INFO : test_e2e :Clicked on Phones & PDA's tab
+2023-03-10 22:20:36,509 :INFO : test_e2e :Products Load Time: 552 ms
+2023-03-10 22:20:37,336 :INFO : test_e2e :Clicked on iPhone from displayed results
+2023-03-10 22:20:37,393 :INFO : test_e2e :Clicked on Add To Cart
+2023-03-10 22:20:37,957 :INFO : test_e2e :Validated the success message after adding to cart
+2023-03-10 22:20:38,572 :INFO : test_e2e :Clicked on Checkout
+2023-03-10 22:20:38,646 :INFO : test_e2e :Validated the error message displayed
+2023-03-10 22:20:38,729 :INFO : test_e2e :Clicked on My Account for next loop
+2023-03-10 22:20:39,358 :INFO : test_e2e :Clicked on Logout
+2023-03-10 22:20:39,358 :INFO : test_e2e :Initial CPU usage: 8.5%
+2023-03-10 22:20:39,358 :INFO : test_e2e :Post-initial CPU usage: 8.5%
+2023-03-10 22:20:39,358 :INFO : test_e2e :Initial memory usage: 94.4%
+2023-03-10 22:20:39,359 :INFO : test_e2e :Post-initial memory usage: 94.4%
+2023-03-10 22:20:39,359 :INFO : test_e2e :Post-product CPU usage: 4.3%
+2023-03-10 22:20:39,359 :INFO : test_e2e :Post-product memory usage: 94.7%

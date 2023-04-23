@@ -1,0 +1,13 @@
+2023-03-04 22:28:38,227 :INFO : test_e2e :3
+2023-03-04 22:28:42,788 :INFO : test_e2e :Opened the URL
+2023-03-04 22:28:42,845 :INFO : test_e2e :Clicked on My Account
+2023-03-04 22:28:43,348 :INFO : test_e2e :Clicked on Login
+2023-03-04 22:28:44,458 :INFO : test_e2e :Entered Email & Password, Clicked on Submit
+2023-03-04 22:28:50,216 :INFO : test_e2e :Clicked on Phones & PDA's tab
+2023-03-04 22:28:51,496 :INFO : test_e2e :Clicked on iPhone from displayed results
+2023-03-04 22:28:51,578 :INFO : test_e2e :Clicked on Add To Cart
+2023-03-04 22:28:52,164 :INFO : test_e2e :Validated the success message after adding to cart
+2023-03-04 22:28:52,894 :INFO : test_e2e :Clicked on Checkout
+2023-03-04 22:28:52,955 :INFO : test_e2e :Validated the error message displayed
+2023-03-04 22:28:53,058 :INFO : test_e2e :Clicked on My Account for next loop
+2023-03-04 22:28:53,765 :INFO : test_e2e :Clicked on Logout

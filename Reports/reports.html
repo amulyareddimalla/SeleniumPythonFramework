@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>reports.html</title>
+    <link href="assets/style.css" rel="stylesheet" type="text/css"/></head>
+  <body onLoad="init()">
+    <script>/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
+function toArray(iter) {
+    if (iter === null) {
+        return null;
+    }
+    return Array.prototype.slice.call(iter);
+}
+
+function find(selector, elem) { // eslint-disable-line no-redeclare
+    if (!elem) {
+        elem = document;
+    }
+    return elem.querySelector(selector);
+}
+
+function findAll(selector, elem) {
+    if (!elem) {
+        elem = document;
+    }
+    return toArray(elem.querySelectorAll(selector));
+}
+
+function sortColumn(elem) {
+    toggleSortStates(elem);
+    const colIndex = toArray(elem.parentNode.childNodes).indexOf(elem);
+    let key;
+    if (elem.classList.contains('result')) {
+        key = keyResult;
+    } else if (elem.classList.contains('links')) {
+        key = keyLink;
+    } else {
+        key = keyAlpha;
+    }
+    sortTable(elem, key(colIndex));
+}
+
+function showAllExtras() { // eslint-disable-line no-unused-vars
+    findAll('.col-result').forEach(showExtras);
+}
+
+function hideAllExtras() { // eslint-disable-line no-unused-vars
+    findAll('.col-result').forEach(hideExtras);
+}
+
+function showExtras(colresultElem) {
+    const extras = colresultElem.parentNode.nextElementSibling;
+    const expandcollapse = colresultElem.firstElementChild;
+    extras.classList.remove('collapsed');
+    expandcollapse.classList.remove('expander');
+    expandcollapse.classList.add('collapser');
+}
+
+function hideExtras(colresultElem) {
+    const extras = colresultElem.parentNode.nextElementSibling;
+    const expandcollapse = colresultElem.firstElementChild;
+    extras.classList.add('collapsed');
+    expandcollapse.classList.remove('collapser');
+    expandcollapse.classList.add('expander');
+}
+
+function showFilters() {
+    let visibleString = getQueryParameter('visible') || 'all';
+    visibleString = visibleString.toLowerCase();
+    const checkedItems = visibleString.split(',');
+
+    const filterItems = document.getElementsByClassName('filter');
+    for (let i = 0; i < filterItems.length; i++) {
+        filterItems[i].hidden = false;
+
+        if (visibleString != 'all') {
+            filterItems[i].checked = checkedItems.includes(filterItems[i].getAttribute('data-test-result'));
+            filterTable(filterItems[i]);
+        }
+    }
+}
+
+function addCollapse() {
+    // Add links for show/hide all
+    const resulttable = find('table#results-table');
+    const showhideall = document.createElement('p');
+    showhideall.innerHTML = '<a href="javascript:showAllExtras()">Show all details</a> / ' +
+                            '<a href="javascript:hideAllExtras()">Hide all details</a>';
+    resulttable.parentElement.insertBefore(showhideall, resulttable);
+
+    // Add show/hide link to each result
+    findAll('.col-result').forEach(function(elem) {
+        const collapsed = getQueryParameter('collapsed') || 'Passed';
+        const extras = elem.parentNode.nextElementSibling;
+        const expandcollapse = document.createElement('span');
+        if (extras.classList.contains('collapsed')) {
+            expandcollapse.classList.add('expander');
+        } else if (collapsed.includes(elem.innerHTML)) {
+            extras.classList.add('collapsed');
+            expandcollapse.classList.add('expander');
+        } else {
+            expandcollapse.classList.add('collapser');
+        }
+        elem.appendChild(expandcollapse);
+
+        elem.addEventListener('click', function(event) {
+            if (event.currentTarget.parentNode.nextElementSibling.classList.contains('collapsed')) {
+                showExtras(event.currentTarget);
+            } else {
+                hideExtras(event.currentTarget);
+            }
+        });
+    });
+}
+
+function getQueryParameter(name) {
+    const match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+}
+
+function init () { // eslint-disable-line no-unused-vars
+    resetSortHeaders();
+
+    addCollapse();
+
+    showFilters();
+
+    sortColumn(find('.initial-sort'));
+
+    findAll('.sortable').forEach(function(elem) {
+        elem.addEventListener('click',
+            function() {
+                sortColumn(elem);
+            }, false);
+    });
+}
+
+function sortTable(clicked, keyFunc) {
+    const rows = findAll('.results-table-row');
+    const reversed = !clicked.classList.contains('asc');
+    const sortedRows = sort(rows, keyFunc, reversed);
+    /* Whole table is removed here because browsers acts much slower
+     * when appending existing elements.
+     */
+    const thead = document.getElementById('results-table-head');
+    document.getElementById('results-table').remove();
+    const parent = document.createElement('table');
+    parent.id = 'results-table';
+    parent.appendChild(thead);
+    sortedRows.forEach(function(elem) {
+        parent.appendChild(elem);
+    });
+    document.getElementsByTagName('BODY')[0].appendChild(parent);
+}
+
+function sort(items, keyFunc, reversed) {
+    const sortArray = items.map(function(item, i) {
+        return [keyFunc(item), i];
+    });
+
+    sortArray.sort(function(a, b) {
+        const keyA = a[0];
+        const keyB = b[0];
+
+        if (keyA == keyB) return 0;
+
+        if (reversed) {
+            return keyA < keyB ? 1 : -1;
+        } else {
+            return keyA > keyB ? 1 : -1;
+        }
+    });
+
+    return sortArray.map(function(item) {
+        const index = item[1];
+        return items[index];
+    });
+}
+
+function keyAlpha(colIndex) {
+    return function(elem) {
+        return elem.childNodes[1].childNodes[colIndex].firstChild.data.toLowerCase();
+    };
+}
+
+function keyLink(colIndex) {
+    return function(elem) {
+        const dataCell = elem.childNodes[1].childNodes[colIndex].firstChild;
+        return dataCell == null ? '' : dataCell.innerText.toLowerCase();
+    };
+}
+
+function keyResult(colIndex) {
+    return function(elem) {
+        const strings = ['Error', 'Failed', 'Rerun', 'XFailed', 'XPassed',
+            'Skipped', 'Passed'];
+        return strings.indexOf(elem.childNodes[1].childNodes[colIndex].firstChild.data);
+    };
+}
+
+function resetSortHeaders() {
+    findAll('.sort-icon').forEach(function(elem) {
+        elem.parentNode.removeChild(elem);
+    });
+    findAll('.sortable').forEach(function(elem) {
+        const icon = document.createElement('div');
+        icon.className = 'sort-icon';
+        icon.textContent = 'vvv';
+        elem.insertBefore(icon, elem.firstChild);
+        elem.classList.remove('desc', 'active');
+        elem.classList.add('asc', 'inactive');
+    });
+}
+
+function toggleSortStates(elem) {
+    //if active, toggle between asc and desc
+    if (elem.classList.contains('active')) {
+        elem.classList.toggle('asc');
+        elem.classList.toggle('desc');
+    }
+
+    //if inactive, reset all other functions and add ascending active
+    if (elem.classList.contains('inactive')) {
+        resetSortHeaders();
+        elem.classList.remove('inactive');
+        elem.classList.add('active');
+    }
+}
+
+function isAllRowsHidden(value) {
+    return value.hidden == false;
+}
+
+function filterTable(elem) { // eslint-disable-line no-unused-vars
+    const outcomeAtt = 'data-test-result';
+    const outcome = elem.getAttribute(outcomeAtt);
+    const classOutcome = outcome + ' results-table-row';
+    const outcomeRows = document.getElementsByClassName(classOutcome);
+
+    for(let i = 0; i < outcomeRows.length; i++){
+        outcomeRows[i].hidden = !elem.checked;
+    }
+
+    const rows = findAll('.results-table-row').filter(isAllRowsHidden);
+    const allRowsHidden = rows.length == 0 ? true : false;
+    const notFoundMessage = document.getElementById('not-found-message');
+    notFoundMessage.hidden = !allRowsHidden;
+}
+</script>
+    <h1>reports.html</h1>
+    <p>Report generated on 14-Apr-2023 at 12:29:05 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a> v3.2.0</p>
+    <h2>Environment</h2>
+    <table id="environment">
+      <tr>
+        <td>BUILD_ID</td>
+        <td>20</td></tr>
+      <tr>
+        <td>BUILD_NUMBER</td>
+        <td>20</td></tr>
+      <tr>
+        <td>BUILD_TAG</td>
+        <td>jenkins-SeleniumPythonOpencart-20</td></tr>
+      <tr>
+        <td>BUILD_URL</td>
+        <td><a href="http://localhost:8080/job/SeleniumPythonOpencart/20/" target="_blank">http://localhost:8080/job/SeleniumPythonOpencart/20/</a></td></tr>
+      <tr>
+        <td>CI</td>
+        <td>true</td></tr>
+      <tr>
+        <td>EXECUTOR_NUMBER</td>
+        <td>0</td></tr>
+      <tr>
+        <td>JENKINS_URL</td>
+        <td><a href="http://localhost:8080/" target="_blank">http://localhost:8080/</a></td></tr>
+      <tr>
+        <td>JOB_NAME</td>
+        <td>SeleniumPythonOpencart</td></tr>
+      <tr>
+        <td>NODE_NAME</td>
+        <td>built-in</td></tr>
+      <tr>
+        <td>Packages</td>
+        <td>{"pluggy": "1.0.0", "pytest": "6.2.5"}</td></tr>
+      <tr>
+        <td>Platform</td>
+        <td>Windows-10-10.0.22621</td></tr>
+      <tr>
+        <td>Project Name</td>
+        <td>Open Cart Selenium with Python Automation for Associate Architect</td></tr>
+      <tr>
+        <td>Python</td>
+        <td>3.9.8</td></tr>
+      <tr>
+        <td>Tester</td>
+        <td>Amulya Reddimalla</td></tr>
+      <tr>
+        <td>WORKSPACE</td>
+        <td>C:\Users\amuly\PycharmProjects1\SeleniumPythonFramework</td></tr></table>
+    <h2>Summary</h2>
+    <p>3 tests ran in 34.87 seconds. </p>
+    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="passed">3 passed</span>, <input checked="true" class="filter" data-test-result="skipped" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="skipped">0 skipped</span>, <input checked="true" class="filter" data-test-result="failed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="failed">0 failed</span>, <input checked="true" class="filter" data-test-result="error" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="error">0 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>
+    <h2>Results</h2>
+    <table id="results-table">
+      <thead id="results-table-head">
+        <tr>
+          <th class="sortable result initial-sort" col="result">Result</th>
+          <th class="sortable" col="name">Test</th>
+          <th class="sortable" col="duration">Duration</th>
+          <th class="sortable links" col="links">Links</th></tr>
+        <tr hidden="true" id="not-found-message">
+          <th colspan="4">No results found. Try to check the filters</th></tr></thead>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_api.py::test_api_methods</td>
+          <td class="col-duration">4.00</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>Request successful with status code:  200
+{
+  &quot;country_id&quot;: &quot;222&quot;,
+  &quot;name&quot;: &quot;United Kingdom&quot;,
+  &quot;iso_code_2&quot;: &quot;GB&quot;,
+  &quot;iso_code_3&quot;: &quot;GBR&quot;,
+  &quot;address_format&quot;: &quot;&quot;,
+  &quot;postcode_required&quot;: &quot;1&quot;,
+  &quot;zone&quot;: [
+    {
+      &quot;zone_id&quot;: &quot;3513&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Aberdeen&quot;,
+      &quot;code&quot;: &quot;ABN&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3514&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Aberdeenshire&quot;,
+      &quot;code&quot;: &quot;ABNS&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3515&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Anglesey&quot;,
+      &quot;code&quot;: &quot;ANG&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3516&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Angus&quot;,
+      &quot;code&quot;: &quot;AGS&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3517&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Argyll and Bute&quot;,
+      &quot;code&quot;: &quot;ARY&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3518&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Bedfordshire&quot;,
+      &quot;code&quot;: &quot;BEDS&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3519&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Berkshire&quot;,
+      &quot;code&quot;: &quot;BERKS&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3520&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Blaenau Gwent&quot;,
+      &quot;code&quot;: &quot;BLA&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3521&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Bridgend&quot;,
+      &quot;code&quot;: &quot;BRI&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3522&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Bristol&quot;,
+      &quot;code&quot;: &quot;BSTL&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3523&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Buckinghamshire&quot;,
+      &quot;code&quot;: &quot;BUCKS&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3524&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Caerphilly&quot;,
+      &quot;code&quot;: &quot;CAE&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3525&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Cambridgeshire&quot;,
+      &quot;code&quot;: &quot;CAMBS&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3526&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Cardiff&quot;,
+      &quot;code&quot;: &quot;CDF&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3527&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Carmarthenshire&quot;,
+      &quot;code&quot;: &quot;CARM&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3528&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Ceredigion&quot;,
+      &quot;code&quot;: &quot;CDGN&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3529&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Cheshire&quot;,
+      &quot;code&quot;: &quot;CHES&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3530&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Clackmannanshire&quot;,
+      &quot;code&quot;: &quot;CLACK&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3531&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Conwy&quot;,
+      &quot;code&quot;: &quot;CON&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3532&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Cornwall&quot;,
+      &quot;code&quot;: &quot;CORN&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3949&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;County Antrim&quot;,
+      &quot;code&quot;: &quot;ANT&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3950&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;County Armagh&quot;,
+      &quot;code&quot;: &quot;ARM&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3951&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;County Down&quot;,
+      &quot;code&quot;: &quot;DOW&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3952&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;County Fermanagh&quot;,
+      &quot;code&quot;: &quot;FER&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3953&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;County Londonderry&quot;,
+      &quot;code&quot;: &quot;LDY&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3954&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;County Tyrone&quot;,
+      &quot;code&quot;: &quot;TYR&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3955&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Cumbria&quot;,
+      &quot;code&quot;: &quot;CMA&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3533&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Denbighshire&quot;,
+      &quot;code&quot;: &quot;DNBG&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3534&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Derbyshire&quot;,
+      &quot;code&quot;: &quot;DERBY&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3535&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Devon&quot;,
+      &quot;code&quot;: &quot;DVN&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3536&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Dorset&quot;,
+      &quot;code&quot;: &quot;DOR&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3537&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Dumfries and Galloway&quot;,
+      &quot;code&quot;: &quot;DGL&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3538&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Dundee&quot;,
+      &quot;code&quot;: &quot;DUND&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3539&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Durham&quot;,
+      &quot;code&quot;: &quot;DHM&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3540&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;East Ayrshire&quot;,
+      &quot;code&quot;: &quot;ARYE&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3541&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;East Dunbartonshire&quot;,
+      &quot;code&quot;: &quot;DUNBE&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3542&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;East Lothian&quot;,
+      &quot;code&quot;: &quot;LOTE&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3543&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;East Renfrewshire&quot;,
+      &quot;code&quot;: &quot;RENE&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3544&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;East Riding of Yorkshire&quot;,
+      &quot;code&quot;: &quot;ERYS&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3545&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;East Sussex&quot;,
+      &quot;code&quot;: &quot;SXE&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3546&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Edinburgh&quot;,
+      &quot;code&quot;: &quot;EDIN&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3547&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Essex&quot;,
+      &quot;code&quot;: &quot;ESX&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3548&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Falkirk&quot;,
+      &quot;code&quot;: &quot;FALK&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3549&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Fife&quot;,
+      &quot;code&quot;: &quot;FFE&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3550&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Flintshire&quot;,
+      &quot;code&quot;: &quot;FLINT&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3551&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Glasgow&quot;,
+      &quot;code&quot;: &quot;GLAS&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3552&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Gloucestershire&quot;,
+      &quot;code&quot;: &quot;GLOS&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3553&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Greater London&quot;,
+      &quot;code&quot;: &quot;LDN&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3554&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Greater Manchester&quot;,
+      &quot;code&quot;: &quot;MCH&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3555&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Gwynedd&quot;,
+      &quot;code&quot;: &quot;GDD&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3556&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Hampshire&quot;,
+      &quot;code&quot;: &quot;HANTS&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3557&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Herefordshire&quot;,
+      &quot;code&quot;: &quot;HWR&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3558&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Hertfordshire&quot;,
+      &quot;code&quot;: &quot;HERTS&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3559&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Highlands&quot;,
+      &quot;code&quot;: &quot;HLD&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3560&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Inverclyde&quot;,
+      &quot;code&quot;: &quot;IVER&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3561&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Isle of Wight&quot;,
+      &quot;code&quot;: &quot;IOW&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3562&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Kent&quot;,
+      &quot;code&quot;: &quot;KNT&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3563&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Lancashire&quot;,
+      &quot;code&quot;: &quot;LANCS&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3564&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Leicestershire&quot;,
+      &quot;code&quot;: &quot;LEICS&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3565&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Lincolnshire&quot;,
+      &quot;code&quot;: &quot;LINCS&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3566&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Merseyside&quot;,
+      &quot;code&quot;: &quot;MSY&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3567&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Merthyr Tydfil&quot;,
+      &quot;code&quot;: &quot;MERT&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3568&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Midlothian&quot;,
+      &quot;code&quot;: &quot;MLOT&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3569&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Monmouthshire&quot;,
+      &quot;code&quot;: &quot;MMOUTH&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3570&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Moray&quot;,
+      &quot;code&quot;: &quot;MORAY&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3571&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Neath Port Talbot&quot;,
+      &quot;code&quot;: &quot;NPRTAL&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3572&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Newport&quot;,
+      &quot;code&quot;: &quot;NEWPT&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3573&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Norfolk&quot;,
+      &quot;code&quot;: &quot;NOR&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3574&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;North Ayrshire&quot;,
+      &quot;code&quot;: &quot;ARYN&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3575&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;North Lanarkshire&quot;,
+      &quot;code&quot;: &quot;LANN&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3576&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;North Yorkshire&quot;,
+      &quot;code&quot;: &quot;YSN&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3577&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Northamptonshire&quot;,
+      &quot;code&quot;: &quot;NHM&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3578&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Northumberland&quot;,
+      &quot;code&quot;: &quot;NLD&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3579&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Nottinghamshire&quot;,
+      &quot;code&quot;: &quot;NOT&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3580&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Orkney Islands&quot;,
+      &quot;code&quot;: &quot;ORK&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3581&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Oxfordshire&quot;,
+      &quot;code&quot;: &quot;OFE&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3582&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Pembrokeshire&quot;,
+      &quot;code&quot;: &quot;PEM&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3583&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Perth and Kinross&quot;,
+      &quot;code&quot;: &quot;PERTH&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3584&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Powys&quot;,
+      &quot;code&quot;: &quot;PWS&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3585&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Renfrewshire&quot;,
+      &quot;code&quot;: &quot;REN&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3586&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Rhondda Cynon Taff&quot;,
+      &quot;code&quot;: &quot;RHON&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3587&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Rutland&quot;,
+      &quot;code&quot;: &quot;RUT&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3588&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Scottish Borders&quot;,
+      &quot;code&quot;: &quot;BOR&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3589&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Shetland Islands&quot;,
+      &quot;code&quot;: &quot;SHET&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3590&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Shropshire&quot;,
+      &quot;code&quot;: &quot;SPE&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3591&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Somerset&quot;,
+      &quot;code&quot;: &quot;SOM&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3592&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;South Ayrshire&quot;,
+      &quot;code&quot;: &quot;ARYS&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3593&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;South Lanarkshire&quot;,
+      &quot;code&quot;: &quot;LANS&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3594&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;South Yorkshire&quot;,
+      &quot;code&quot;: &quot;YSS&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3595&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Staffordshire&quot;,
+      &quot;code&quot;: &quot;SFD&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3596&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Stirling&quot;,
+      &quot;code&quot;: &quot;STIR&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3597&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Suffolk&quot;,
+      &quot;code&quot;: &quot;SFK&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3598&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Surrey&quot;,
+      &quot;code&quot;: &quot;SRY&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3599&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Swansea&quot;,
+      &quot;code&quot;: &quot;SWAN&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3600&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Torfaen&quot;,
+      &quot;code&quot;: &quot;TORF&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3601&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Tyne and Wear&quot;,
+      &quot;code&quot;: &quot;TWR&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3602&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Vale of Glamorgan&quot;,
+      &quot;code&quot;: &quot;VGLAM&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3603&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Warwickshire&quot;,
+      &quot;code&quot;: &quot;WARKS&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3604&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;West Dunbartonshire&quot;,
+      &quot;code&quot;: &quot;WDUN&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3605&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;West Lothian&quot;,
+      &quot;code&quot;: &quot;WLOT&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3606&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;West Midlands&quot;,
+      &quot;code&quot;: &quot;WMD&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3607&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;West Sussex&quot;,
+      &quot;code&quot;: &quot;SXW&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3608&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;West Yorkshire&quot;,
+      &quot;code&quot;: &quot;YSW&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3609&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Western Isles&quot;,
+      &quot;code&quot;: &quot;WIL&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3610&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Wiltshire&quot;,
+      &quot;code&quot;: &quot;WLT&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3611&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Worcestershire&quot;,
+      &quot;code&quot;: &quot;WORCS&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    },
+    {
+      &quot;zone_id&quot;: &quot;3612&quot;,
+      &quot;country_id&quot;: &quot;222&quot;,
+      &quot;name&quot;: &quot;Wrexham&quot;,
+      &quot;code&quot;: &quot;WRX&quot;,
+      &quot;status&quot;: &quot;1&quot;
+    }
+  ],
+  &quot;status&quot;: &quot;1&quot;
+}
+Request successful with status code:  200
+{&quot;name&quot;: &quot;architect&quot;, &quot;description&quot;: &quot;testing&quot;}
+Request successful with status code:  200
+{&quot;id&quot;: 2222, &quot;name&quot;: &quot;architect&quot;, &quot;description&quot;: &quot;testing&quot;}
+Request successful with status code:  200
+&lt;Response [200]&gt;
+<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_e2e.py::TestcaseOne::test_e2e</td>
+          <td class="col-duration">17.56</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>Success: You have added iPhone to your shopping cart!
+×
+Products marked with *** are not available in the desired quantity or not in stock!
+×
+Success: You have added iPhone to your shopping cart!
+×
+Products marked with *** are not available in the desired quantity or not in stock!
+×
+<br/> -------------------------------Captured log call-------------------------------- <br/>INFO     TestcaseOne:test_e2e.py:40 Opened the URL
+INFO     TestcaseOne:test_e2e.py:43 Initial Load Time: 431 ms
+INFO     TestcaseOne:test_e2e.py:58 Clicked on My Account
+INFO     TestcaseOne:test_e2e.py:63 Clicked on Login
+INFO     TestcaseOne:test_e2e.py:71 Entered Email &amp; Password, Clicked on Submit
+INFO     TestcaseOne:test_e2e.py:72 Logged in Successfully
+INFO     TestcaseOne:test_e2e.py:77 Clicked on Phones &amp; PDA&#x27;s tab
+INFO     TestcaseOne:test_e2e.py:81 Products Load Time: 431 ms
+INFO     TestcaseOne:test_e2e.py:91 Clicked on iPhone from displayed results
+INFO     TestcaseOne:test_e2e.py:97 Clicked on Add To Cart
+INFO     TestcaseOne:test_e2e.py:106 Validated the success message after adding to cart
+INFO     TestcaseOne:test_e2e.py:110 Clicked on Checkout
+INFO     TestcaseOne:test_e2e.py:117 Validated the error message displayed
+INFO     TestcaseOne:test_e2e.py:128 Clicked on My Account for next loop
+INFO     TestcaseOne:test_e2e.py:134 Clicked on Logout
+INFO     TestcaseOne:test_e2e.py:136 Initial CPU usage: 11.8%
+INFO     TestcaseOne:test_e2e.py:137 Post-initial CPU usage: 11.8%
+INFO     TestcaseOne:test_e2e.py:138 Initial memory usage: 98.5%
+INFO     TestcaseOne:test_e2e.py:139 Post-initial memory usage: 98.5%
+INFO     TestcaseOne:test_e2e.py:140 Post-product CPU usage: 12.5%
+INFO     TestcaseOne:test_e2e.py:141 Post-product memory usage: 98.5%
+INFO     TestcaseOne:test_e2e.py:40 Opened the URL
+INFO     TestcaseOne:test_e2e.py:43 Initial Load Time: 575 ms
+INFO     TestcaseOne:test_e2e.py:156 Clicked on My Account
+INFO     TestcaseOne:test_e2e.py:163 Clicked on Login
+INFO     TestcaseOne:test_e2e.py:174 Entered Email &amp; Password, Clicked on Submit
+INFO     TestcaseOne:test_e2e.py:177 Logged in Successfully
+INFO     TestcaseOne:test_e2e.py:183 Clicked on Phones &amp; PDA&#x27;s tab
+INFO     TestcaseOne:test_e2e.py:188 Products Load Time: 575 ms
+INFO     TestcaseOne:test_e2e.py:198 Clicked on iPhone from displayed results
+INFO     TestcaseOne:test_e2e.py:204 Clicked on Add To Cart
+INFO     TestcaseOne:test_e2e.py:213 Validated the success message after adding to cart
+INFO     TestcaseOne:test_e2e.py:217 Clicked on Checkout
+INFO     TestcaseOne:test_e2e.py:224 Validated the error message displayed
+INFO     TestcaseOne:test_e2e.py:235 Clicked on My Account for next loop
+INFO     TestcaseOne:test_e2e.py:241 Clicked on Logout
+INFO     TestcaseOne:test_e2e.py:242 Initial CPU usage: 17.1%
+INFO     TestcaseOne:test_e2e.py:243 Post-initial CPU usage: 17.1%
+INFO     TestcaseOne:test_e2e.py:244 Initial memory usage: 95.6%
+INFO     TestcaseOne:test_e2e.py:245 Post-initial memory usage: 95.6%
+INFO     TestcaseOne:test_e2e.py:246 Post-product CPU usage: 0.0%
+INFO     TestcaseOne:test_e2e.py:247 Post-product memory usage: 95.7%
+INFO     TestcaseOne:test_e2e.py:248 UI Test case Passed and proceeding with API Test Case<br/></div></td></tr></tbody>
+      <tbody class="passed results-table-row">
+        <tr>
+          <td class="col-result">Passed</td>
+          <td class="col-name">test_register.py::TestcaseOne::test_register</td>
+          <td class="col-duration">11.57</td>
+          <td class="col-links"></td></tr>
+        <tr>
+          <td class="extra" colspan="4">
+            <div class="log"> ------------------------------Captured stdout call------------------------------ <br/>Your Account Has Been Created!
+My Account
+Success: You have added iPhone to your shopping cart!
+×
+Products marked with *** are not available in the desired quantity or not in stock!
+×
+<br/></div></td></tr></tbody></table></body></html>

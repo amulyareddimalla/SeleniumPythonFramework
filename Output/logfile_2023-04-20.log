@@ -1,0 +1,42 @@
+2023-04-20 21:47:31,887 :INFO : TestcaseOne :Opened the URL
+2023-04-20 21:47:31,888 :INFO : TestcaseOne :Initial Load Time: 262 ms
+2023-04-20 21:47:31,930 :INFO : TestcaseOne :Clicked on My Account
+2023-04-20 21:47:32,444 :INFO : TestcaseOne :Clicked on Login
+2023-04-20 21:47:33,764 :INFO : TestcaseOne :Entered Email & Password, Clicked on Submit
+2023-04-20 21:47:33,764 :INFO : TestcaseOne :Logged in Successfully
+2023-04-20 21:47:34,723 :INFO : TestcaseOne :Clicked on Phones & PDA's tab
+2023-04-20 21:47:34,724 :INFO : TestcaseOne :Products Load Time: 262 ms
+2023-04-20 21:47:36,388 :INFO : TestcaseOne :Clicked on iPhone from displayed results
+2023-04-20 21:47:36,457 :INFO : TestcaseOne :Clicked on Add To Cart
+2023-04-20 21:47:37,049 :INFO : TestcaseOne :Validated the success message after adding to cart
+2023-04-20 21:47:38,142 :INFO : TestcaseOne :Clicked on Checkout
+2023-04-20 21:47:38,185 :INFO : TestcaseOne :Validated the error message displayed
+2023-04-20 21:47:38,298 :INFO : TestcaseOne :Clicked on My Account for next loop
+2023-04-20 21:47:39,141 :INFO : TestcaseOne :Clicked on Logout
+2023-04-20 21:47:39,142 :INFO : TestcaseOne :Initial CPU usage: 19.3%
+2023-04-20 21:47:39,142 :INFO : TestcaseOne :Post-initial CPU usage: 19.3%
+2023-04-20 21:47:39,143 :INFO : TestcaseOne :Initial memory usage: 88.7%
+2023-04-20 21:47:39,143 :INFO : TestcaseOne :Post-initial memory usage: 88.7%
+2023-04-20 21:47:39,143 :INFO : TestcaseOne :Post-product CPU usage: 14.3%
+2023-04-20 21:47:39,143 :INFO : TestcaseOne :Post-product memory usage: 88.7%
+2023-04-20 21:47:39,655 :INFO : TestcaseOne :Opened the URL
+2023-04-20 21:47:39,656 :INFO : TestcaseOne :Initial Load Time: 776 ms
+2023-04-20 21:47:39,717 :INFO : TestcaseOne :Clicked on My Account
+2023-04-20 21:47:40,258 :INFO : TestcaseOne :Clicked on Login
+2023-04-20 21:47:41,295 :INFO : TestcaseOne :Entered Email & Password, Clicked on Submit
+2023-04-20 21:47:41,295 :INFO : TestcaseOne :Logged in Successfully
+2023-04-20 21:47:41,847 :INFO : TestcaseOne :Clicked on Phones & PDA's tab
+2023-04-20 21:47:41,848 :INFO : TestcaseOne :Products Load Time: 776 ms
+2023-04-20 21:47:43,420 :INFO : TestcaseOne :Clicked on iPhone from displayed results
+2023-04-20 21:47:43,479 :INFO : TestcaseOne :Clicked on Add To Cart
+2023-04-20 21:47:44,056 :INFO : TestcaseOne :Validated the success message after adding to cart
+2023-04-20 21:47:44,931 :INFO : TestcaseOne :Clicked on Checkout
+2023-04-20 21:47:44,968 :INFO : TestcaseOne :Validated the error message displayed
+2023-04-20 21:47:45,060 :INFO : TestcaseOne :Clicked on My Account for next loop
+2023-04-20 21:47:45,901 :INFO : TestcaseOne :Clicked on Logout
+2023-04-20 21:47:45,902 :INFO : TestcaseOne :Initial CPU usage: 3.3%
+2023-04-20 21:47:45,902 :INFO : TestcaseOne :Post-initial CPU usage: 3.3%
+2023-04-20 21:47:45,902 :INFO : TestcaseOne :Initial memory usage: 92.7%
+2023-04-20 21:47:45,902 :INFO : TestcaseOne :Post-initial memory usage: 92.7%
+2023-04-20 21:47:45,902 :INFO : TestcaseOne :Post-product CPU usage: 0.0%
+2023-04-20 21:47:45,902 :INFO : TestcaseOne :Post-product memory usage: 92.7%

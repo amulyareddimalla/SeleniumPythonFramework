@@ -1,0 +1,36 @@
+2023-03-08 23:55:26,583 :INFO : test_e2e :Opened the URL
+2023-03-08 23:55:26,583 :INFO : test_e2e :Initial Load Time: 505 ms
+2023-03-08 23:55:26,624 :INFO : test_e2e :Clicked on My Account
+2023-03-08 23:55:27,220 :INFO : test_e2e :Clicked on Login
+2023-03-08 23:55:27,917 :INFO : test_e2e :Entered Email & Password, Clicked on Submit
+2023-03-08 23:55:32,917 :INFO : test_e2e :Logged in Successfully
+2023-03-08 23:55:33,889 :INFO : test_e2e :Clicked on Phones & PDA's tab
+2023-03-08 23:55:33,889 :INFO : test_e2e :Products Load Time: 505 ms
+2023-03-08 23:55:35,764 :INFO : test_e2e :Clicked on iPhone from displayed results
+2023-03-08 23:55:35,805 :INFO : test_e2e :Clicked on Add To Cart
+2023-03-08 23:55:36,353 :INFO : test_e2e :Validated the success message after adding to cart
+2023-03-08 23:55:37,894 :INFO : test_e2e :Clicked on Checkout
+2023-03-08 23:55:37,936 :INFO : test_e2e :Validated the error message displayed
+2023-03-08 23:55:37,991 :INFO : test_e2e :Clicked on My Account for next loop
+2023-03-08 23:55:38,013 :INFO : test_e2e :Error
+2023-03-08 23:55:38,607 :INFO : test_e2e :Opened the URL
+2023-03-08 23:55:38,607 :INFO : test_e2e :Initial Load Time: 1484 ms
+2023-03-08 23:55:38,661 :INFO : test_e2e :Clicked on My Account
+2023-03-08 23:55:39,258 :INFO : test_e2e :Clicked on Login
+2023-03-08 23:55:40,582 :INFO : test_e2e :Entered Email & Password, Clicked on Submit
+2023-03-08 23:55:45,585 :INFO : test_e2e :Logged in Successfully
+2023-03-08 23:55:46,260 :INFO : test_e2e :Clicked on Phones & PDA's tab
+2023-03-08 23:55:46,260 :INFO : test_e2e :Products Load Time: 1484 ms
+2023-03-08 23:55:48,457 :INFO : test_e2e :Clicked on iPhone from displayed results
+2023-03-08 23:55:48,512 :INFO : test_e2e :Clicked on Add To Cart
+2023-03-08 23:55:49,080 :INFO : test_e2e :Validated the success message after adding to cart
+2023-03-08 23:55:50,064 :INFO : test_e2e :Clicked on Checkout
+2023-03-08 23:55:50,106 :INFO : test_e2e :Validated the error message displayed
+2023-03-08 23:55:50,155 :INFO : test_e2e :Clicked on My Account for next loop
+2023-03-08 23:55:51,128 :INFO : test_e2e :Clicked on Logout
+2023-03-08 23:55:51,128 :INFO : test_e2e :Initial CPU usage: 3.9%
+2023-03-08 23:55:51,128 :INFO : test_e2e :Post-initial CPU usage: 3.9%
+2023-03-08 23:55:51,128 :INFO : test_e2e :Initial memory usage: 91.0%
+2023-03-08 23:55:51,128 :INFO : test_e2e :Post-initial memory usage: 91.0%
+2023-03-08 23:55:51,128 :INFO : test_e2e :Post-product CPU usage: 14.3%
+2023-03-08 23:55:51,128 :INFO : test_e2e :Post-product memory usage: 91.0%
